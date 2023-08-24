@@ -25,10 +25,11 @@
 import { Search } from '@element-plus/icons-vue';
 import { RefreshLeft } from '@element-plus/icons-vue';
 import type { FormInstance } from 'element-plus'
-import { ref, inject } from 'vue';
+import { ref, reactive, inject } from 'vue';
 // const emit = defineEmits(['getSearch']);
 
 type FormType = {
+  defaultValue?: any,
   type: 'input';
   name: string;
   label: string;
@@ -49,32 +50,33 @@ const props = defineProps<{
   hideReset?: boolean;
 }>()
 
-const FormData = ref<any>({});
+const FormData = reactive<any>({});
 
 props.ItemList.forEach((item) => {
-  FormData[item.name] = undefined;
+  FormData[item.name] = item?.defaultValue || undefined;
 });
 
 const submitForm = () => {
   formRef.value?.validate((valid) => {
     if (valid) {
       // emit('getSearch', { ...FormData.value })
-      handleSubmit({ ...FormData.value })
+      handleSubmit({ ...FormData })
     }
   });
 }
 const handleSubmit = inject<(args: any) => void>("handleSearch", () => { });
 
 const resetForm = (fg?: boolean) => {
+  console.log(formRef.value)
   if (formRef.value?.resetFields) {
     formRef.value?.resetFields();
   } else {
-    Object.keys(FormData.value).forEach((key) => {
-      FormData["value"][key] = undefined
+    Object.keys(FormData).forEach((key) => {
+      FormData[key] = undefined
     })
   }
   if (!fg) {
-    handleSubmit({});
+    handleSubmit(FormData);
   }
 }
 
@@ -85,9 +87,9 @@ const clearValidate = () => {
 //设置一组字段到指定值或重置
 const resetField = (name: string, value?: any): void => {
   if (value) {
-    FormData.value[name] = value;
+    FormData[name] = value;
   } else {
-    FormData.value[name] = undefined;
+    FormData[name] = undefined;
   }
 }
 
